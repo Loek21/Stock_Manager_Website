@@ -1,0 +1,177 @@
+{% extends "holding/base.html" %}
+{% block title %}Portfolio{% endblock %}
+{% block nav %}
+<form action="{% url 'Search' %}" method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <input type="text" list="stocks" placeholder="Search" name="search" class="form-control" title="Search">
+        <datalist id="stocks">
+            {% for stock in stocks %}
+            <option value="{{stock.ticker}} {{stock.name}} {{stock.currency}}">
+            {% endfor %}
+        </datalist>
+    </div>
+</form>
+<div class="spacer"></div>
+<li class="nav-item">
+    <a class="nav-link background" href="{% url 'portfolio' %}" title="Go to my portfolio">My portfolio</a>
+</li>
+<div class="spacer"></div>
+<li class="nav-item">
+    <a class="nav-link background" href="{% url 'Account' %}" title="Go to my account page">My account</a>
+</li>
+<div class="spacer"></div>
+<li class="nav-item">
+    <a class="nav-link background" href="{% url 'logout' %}" title="Logout">Logout</a>
+</li>
+{% endblock %}
+{% block body %}
+<div class="portfolio-grid">
+    <div class="header">
+        {% if portfolios == None %}
+        <button id="create_portfolio" class="gen-button" title="Create portfolio">Create Portfolio</button>
+        {% else %}
+        <a href="{% url 'portfolio' %}" title="Go to portfolio: {{portfolios.pname}}">{{portfolios.pname}}</a>
+        {% endif %}
+    </div>
+    <div class="watchlist">
+        <a href="{% url 'watchlist' %}" title="Go to watchlist">Watchlist</a>
+    </div>
+    <div class="graphic">
+        <div class="center"><h4>{{RealTime.name}}</h4></div>
+        <canvas id="myChart" width="200" height="100"></canvas>
+        <script>
+        var stuff = "{{Graph.label}}";
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [{% for item in Graph.label %}'{{item}}',{% endfor %}],
+                datasets: [{
+                    label: 'Last Price $',
+                    fill: false,
+                    data: [{% for item in Graph.lprice %}'{{item}}',{% endfor %}],
+                    backgroundColor: [{% for item in Graph.lprice %}'rgba(4, 139, 255, 1)',{% endfor %}],
+                    borderColor: ['rgba(132, 234, 252, 1)'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: false,
+                        },
+                        scaleLabel: {
+                        display: true,
+                        labelString: 'Price $',
+                        }
+                    }],
+                    xAxes: [{
+                        ticks: {
+                            beginAtZero: false,
+                        },
+                        scaleLabel: {
+                        display: true,
+                        labelString: 'Time UTC',
+                        }
+                    }]
+                },
+            }
+        });
+        </script>
+    </div>
+    <div class="vline"></div>
+    <div class="portfolio">
+        <div class="element">
+            Ticker: <span id="ticker-info">{{RealTime.ticker}}</span><br>
+            Name: {{RealTime.name}}<br>
+            Last Trade: {{RealTime.date}}<br>
+            Last Price: {{RealTime.lastprice}}<br>
+            Ask Price: {{RealTime.askprice}}<br>
+            Bid Price: {{RealTime.bidprice}}<br>
+            High Price: {{RealTime.highprice}}<br>
+            Low Price: {{RealTime.lowprice}}<br>
+            Up/Down (%): {% if RealTime.updownrp == 0 %}{{RealTime.updownrp}}%
+            {% elif RealTime.updownrp > 0 %}<span class="positive">{{RealTime.updownrp}}%</span>
+            {% else %}<span class="negative">{{RealTime.updownrp}}%</span>
+            {% endif %}<br>
+            Up/Down ($): {% if RealTime.updownrv == 0 %}${{RealTime.updownrv}}
+            {% elif RealTime.updownrv > 0 %}<span class="positive">${{RealTime.updownrv}}</span>
+            {% else %}<span class="negative">${{RealTime.updownrv}}</span>
+            {% endif %}<br>
+            Updated on: {{RealTime.updated}}<br><br>
+            {% if portfolios %}
+            <button id="Buy" class="Buy" title="Buy">Buy</button>
+            <button id="Sell" class="Sell" title="Sell">Sell</button>
+            {% endif %}
+            <button id="reminder" class="gen-button" title="Add alert">Add Alert</button>
+            <form action="{% url 'AddWatch' RealTime.ticker %}" method="post" class="inline" title="Add to watchlist">{% csrf_token %}<button type=submit class="gen-button">Add to Watchlist</button></form>
+        </div>
+    </div>
+</div>
+<div class="form" style="display:none" id="form-portfolio">
+    <div class="center"><h4>Create a portfolio</h4></div>
+    <form action="{% url 'AddPortfolio' %}" method="post">
+        {% csrf_token %}
+        <label>Enter portfolio name (no spaces):</label><br>
+        <input type="text" name="portfolio_name" placeholder="PortfolioName"><br>
+        <label>Enter starting balance:</label><br>
+        $<input type="number" step="0.01" name="cash"><br><br>
+        <div class="center"><button type="submit" class="gen-button" title="Create portfolio">Create Portfolio</button></div>
+    </form>
+</div>
+<div class="form" style="display:none" id="transaction_buy">
+    <div class="center"><h4>Buy your holdings</h4></div>
+    <form action="{% url 'Buy' %}" method="post">
+        {% csrf_token %}
+        <label>Security ticker:</label><br>
+        <input type="text" name="tickerb" value="{{RealTime.ticker}}" readonly="readonly"><br>
+        <label>Enter number of holdings:</label><br>
+        <input type="number" name="number_of_holdingsb" placeholder="Number of holdings" id="numberb"><br>
+        <label>Enter buying price (include transaction costs):</label><br>
+        {% if RealTime.askprice == None %}
+        $<input type="number" step="0.01" value="{{RealTime.lastprice}}" id="aprice" name="lpb"><br>
+        {% else %}
+        $<input type="number" step="0.01" value="{{RealTime.askprice}}" id="aprice" name="apb"><br>
+        {% endif %}
+        <div class="center"><button type="submit" id="transactionb" class="Buy" title="Buy">Buy</button></div>
+    </form>
+</div>
+<div class="form" style="display:none" id="transaction_sell">
+    <div class="center"><h4>Sell your holdings</h4></div>
+    <form action="{% url 'Sell' %}" method="post">
+        {% csrf_token %}
+        <label>Security ticker:</label><br>
+        <input type="text" name="tickers" value="{{RealTime.ticker}}" readonly="readonly"><br>
+        <label>Enter number of holdings:</label><br>
+        <input type="number" name="number_of_holdingss" placeholder="Number of holdings" id="numbers"><br>
+        <label>Enter selling price (include transaction costs):</label><br>
+        {% if RealTime.bidprice == None %}
+        $<input type="number" step="0.01" value="{{RealTime.lastprice}}" id="bprice" name="lps"><br>
+        {% else %}
+        $<input type="number" step="0.01" value="{{RealTime.bidprice}}" id="bprice" name="bps"><br>
+        {% endif %}
+        <div class="center"><button type="submit" id="transactions" class="Sell" title="Sell">Sell</button></div>
+    </form>
+</div>
+<div class="form" style="display:none" id="form-add-reminder">
+    <div class="center"><h4>Add Alert</h4><div class="small">Set an alert and we will email<br>you when the alert is triggered!</div></div>
+    <form action="{% url 'AddReminder' %}" method="post">
+        {% csrf_token %}
+        <label>Security ticker:</label><br>
+        <input type="text" name="holding_name" value="{{RealTime.ticker}}" readonly="readonly"><br>
+        <label>Enter the upper limit:</label><br>
+        <input type="number" step="0.01" name="holding_value_up" placeholder="Upper limit"><br>
+        <label>Enter the lower limit:</label><br>
+        <input type="number" step="0.01" name="holding_value_down" placeholder="Lower limit"><br>
+        <label for="portfolio_units">Select units:</label><br>
+        <input type="radio" name="holding_units" value="%" checked="checked"> in %<br>
+        <input type="radio" name="holding_units" value="$"> in $<br>
+        <div class="center"><button type="submit" class="gen-button" title="Add alert">Add Alert</button></div>
+    </form>
+</div>
+{% load static %}
+<script src="{% static '/portfolio/CreatePortfolio.js' %}"></script>
+<script src="{% static '/holding/transaction.js' %}"></script>
+{% endblock %}

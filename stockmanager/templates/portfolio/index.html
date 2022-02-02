@@ -1,0 +1,202 @@
+{% extends "portfolio/base.html" %}
+{% block title %}Portfolio{% endblock %}
+{% block nav %}
+<form action="{% url 'Search' %}" method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <input type="text" list="stocks" placeholder="Search" name="search" class="form-control" title="Search">
+        <datalist id="stocks">
+            {% for stock in stocks %}
+            <option value="{{stock.ticker}} {{stock.name}} {{stock.currency}}">
+            {% endfor %}
+        </datalist>
+    </div>
+</form>
+<div class="spacer"></div>
+<li class="nav-item active">
+    <a class="nav-link background" href="{% url 'portfolio' %}" title="Go to my portfolio">My portfolio</a>
+</li>
+<div class="spacer"></div>
+<li class="nav-item">
+    <a class="nav-link background" href="{% url 'Account' %}" title="Go to my account page">My account</a>
+</li>
+<div class="spacer"></div>
+<li class="nav-item">
+    <a class="nav-link background" href="{% url 'logout' %}" title="Logout">Logout</a>
+</li>
+{% endblock %}
+{% block body %}
+<div class="portfolio-grid">
+    <div class="header">
+        {% if portfolios == None %}
+        <button id="create_portfolio" title="Create portfolio" class="gen-button">Create Portfolio</button>
+        {% else %}
+        <a href="{% url 'portfolio' %}" title="Go to portfolio: {{portfolios.pname}}">{{portfolios.pname}}</a>
+        {% endif %}
+    </div>
+    <div class="watchlist">
+        <a href="{% url 'watchlist' %}" title="Go to watchlist">Watchlist</a>
+    </div>
+    <div class="graphic">
+        {% if portfolios != None %}
+        <div class="center"><h4>Portfolio: {{portfolios.pname}}</h4></div>
+        <canvas id="myChart" width="200" height="100"></canvas>
+        <script>
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [{% for item in data.labels %}'{{item}}',{% endfor %}],
+                datasets: [{
+                    label: 'Up/Down % of the past 9 days',
+                    fill: false,
+                    data: [{% for item in data.points %}'{{item}}',{% endfor %}],
+                    backgroundColor: [{% for item in data.points %}'rgba(4, 139, 255, 1)',{% endfor %}],
+                    borderColor: ['rgba(132, 234, 252, 1)'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: false,
+                        },
+                        scaleLabel: {
+                        display: true,
+                        labelString: 'Up/Down %',
+                        }
+                    }],
+                    xAxes: [{
+                        ticks: {
+                            beginAtZero: false,
+                        },
+                        scaleLabel: {
+                        display: true,
+                        labelString: 'Date',
+                        }
+                    }]
+                },
+            }
+        });
+        </script>
+        {% else %}
+        <div class="center"><h4>Please create a portfolio to view content</h4></div>
+        {% endif %}
+    </div>
+    <div class="vline"></div>
+    <div class="portfolio">
+        <div class="element">
+            {% if portfolios %}
+            <table>
+                <tr>
+                    <th>Funds</th>
+                    <th>Portfolio Value</th>
+                    <th>Total Value</th>
+                    <th>Up/Down (%)</th>
+                    <th>Up/Down ($)</th>
+                </tr>
+                <tr>
+                    <td>
+                        ${{portfolios.cash}}
+                    </td>
+                    <td>
+                        ${{portfolios.pvalue}}
+                    </td>
+                    <td>
+                        $<script>
+                            var a = ({{portfolios.cash}} + {{portfolios.pvalue}}).toFixed(2);
+                            document.write(a);
+                        </script>
+                    </td>
+                    <td>
+                        {% if portfolios.updownpp == 0 %}{{portfolios.updownpp}}%
+                        {% elif portfolios.updownpp > 0 %}<span class="positive">{{portfolios.updownpp}}%</span>
+                        {% else %}<span class="negative">{{portfolios.updownpp}}%</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if portfolios.updownpv == 0 %}${{portfolios.updownpv}}
+                        {% elif portfolios.updownpv > 0 %}<span class="positive">${{portfolios.updownpv}}</span>
+                        {% else %}<span class="negative">${{portfolios.updownpv}}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table><br>
+            {% if holdings %}
+            <table>
+                <tr>
+                    <th>Product</th>
+                    <th>Number of holdings</th>
+                    <th>Value</th>
+                    <th>Up/Down (%)</th>
+                    <th>Up/Down ($)</th>
+                </tr>
+            </table>
+            {% endif %}
+            {% if holdings %}
+            <div class="scroll-list">
+                <table>
+                    {% for holding in holdings %}
+                    <tr>
+                        <td><a href="{% url 'holding' holding.hname %}" title="Go to {{holding.hnamef}}">{{holding.hnamef}}</a></td>
+                        <td>{{holding.hnumber}}</td>
+                        <td>${{holding.hvalue}}</td>
+                        <td>
+                            {% if holding.updownhp == 0 %}{{holding.updownhp}}%
+                            {% elif holding.updownhp > 0 %}<span class="positive">{{holding.updownhp}}%</span>
+                            {% else %}<span class="negative">{{holding.updownhp}}%</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if holding.updownhv == 0 %}${{holding.updownhv}}
+                            {% elif holding.updownhv > 0 %}<span class="positive">${{holding.updownhv}}</span>
+                            {% else %}<span class="negative">${{holding.updownhv}}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+        <div class="buttons">
+            {% if portfolios %}
+            <button id="fundsa" class="gen-button" title="Add funds">Add Funds</button> <button id="fundsr" class="gen-button" title="Remove funds">Remove Funds</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<div class="form" style="display:none" id="form-portfolio">
+    <div class="center"><h4>Create a portfolio</h4></div>
+    <form action="{% url 'AddPortfolio' %}" method="post">
+        {% csrf_token %}
+        <label>Enter portfolio name (no spaces):</label><br>
+        <input type="text" name="portfolio_name" placeholder="PortfolioName"><br>
+        <label>Enter starting balance:</label><br>
+        $<input type="number" step="0.01" name="cash"><br><br>
+        <div class="center"><button type="submit" class="gen-button" title="Create portfolio">Create Portfolio</button></div>
+    </form>
+</div>
+<div class="form" style="display:none" id="form-add-fund">
+    <div class="center"><h4>Add funds</h4></div>
+    <form action="{% url 'AddFunds' %}" method="post">
+        {% csrf_token %}
+        <label>Enter amount:</label><br>
+        $<input type="number" step="0.01" name="fundsa"><br><br>
+        <div class="center"><button type="submit" class="gen-button" title="Add funds">Add Funds</button></div>
+    </form>
+</div>
+<div class="form" style="display:none" id="form-remove-fund">
+    <div class="center"><h4>Remove funds</h4></div>
+    <form action="{% url 'RemoveFunds' %}" method="post">
+        {% csrf_token %}
+        <label>Enter amount:</label><br>
+        $<input type="number" step="0.01" name="fundsr"><br><br>
+        <div class="center"><button type="submit" class="gen-button" title="Remove funds">Remove Funds</button></div>
+    </form>
+</div>
+{% load static %}
+<script src="{% static '/portfolio/CreatePortfolio.js' %}"></script>
+{% endblock %}

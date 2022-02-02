@@ -1,0 +1,48 @@
+{% extends "user/base.html" %}
+{% block title %}Register{% endblock %}
+{% block nav %}
+<li class="nav-item">
+    <a class="nav-link background" href="{% url 'login' %}" title="Login"><div class="text">Login</div></a>
+</li>
+<div class="spacer"></div>
+<li class="nav-item active">
+    <a class="nav-link background" href="{% url 'register' %}" title="Register"><div class="text">Register</div></a>
+</li>
+{% endblock %}
+{% block body %}
+<div class="reg-div">
+    <form method="post">
+        {% csrf_token %}
+        <div class="title">
+            <h3>Register</h3>
+        </div>
+        <div class="label-u">
+            <label>Username:</label>
+        </div>
+        <div class="username">
+            {{ form.username }}
+        </div>
+        <div class="label-e">
+            <label>Email:</label>
+        </div>
+        <div class="email">
+            {{ form.email }}
+        </div>
+        <div class="label-p1">
+            <label>Password:</label>
+        </div>
+        <div class="password1">
+            {{ form.password1 }}
+        </div>
+        <div class="label-p2">
+            <label>Confirm Password:</label>
+        </div>
+        <div class="password2">
+            {{ form.password2 }}
+        </div>
+        <div class="submit">
+            <button type="submit" class="gen-button" title="Register">Register</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

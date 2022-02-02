@@ -1,0 +1,101 @@
+<!-- Loek van Steijn -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% load static %}
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet"/>
+        <link href="{% static '/home/style.css' %}" rel="stylesheet"/>
+        <script src="{% static '/home/animate.js' %}"></script>
+        <title>Home</title>
+    </head>
+    <body>
+        <div class="noscript">
+            <noscript>This website does not function as intended with JavaScript disabled, please turn it on.</noscript>
+        </div>
+        <div class="home-grid">
+            <div class="nav_bar">
+                <nav class="navbar navbar-expand-lg navbar-light bg">
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div id="navbarNavDropdown" class="navbar-collapse collapse">
+                        <ul class="navbar-nav mr-auto">
+                            <div class="logo-grid">
+                                <div class="logo">
+                                    w
+                                </div>
+                                <div class="logo2">
+                                    ave
+                                </div>
+                                <div class="sub">
+                                    Stock manager
+                                </div>
+                            </div>
+                        </ul>
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link background" href="{% url 'login' %}" title="Login"><div class="text">Login</div></a>
+                            </li>
+                            <div class="spacer"></div>
+                            <li class="nav-item">
+                                <a class="nav-link background" href="{% url 'register' %}" title="Register"><div class="text">Register</div></a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="body1">
+                <div class="body1-1">
+                    <div class="center-logo-grid">
+                        <div class="wave-area">
+                            wave
+                        </div>
+                        <div class="manager-area">
+                            Stock manager
+                        </div>
+                    </div>
+                </div>
+                <div class="body1-2">
+                    <form action="{% url 'register' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="home-button">Join <span class="lettertype1">wave</span> now for free!</button>
+                    </form>
+                </div>
+            </div>
+            <div class="bar1">
+            </div>
+            <div class="body2">
+                <div class="body3 appear">
+                    <div class="text-div">
+                        <h2>What we offer:</h2><br>
+                        <ul>
+                            <li>Your own portfolio</li>
+                            <li>RealTime exhange updates</li>
+                            <li>Graphical view of all securities and your portfolio</li>
+                            <li>Watchlist to keep track of interesting securities</li>
+                            <li>Add alerts that will send you notifications whenever you want</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="body4 appear">
+                    <div class="text-div">
+                        <h2>About <span class="lettertype1">wave</span>:</h2><br>
+                        <p>
+                            Named after the Elliott wave principle for market cycle analysis, <span class="lettertype1">wave</span>
+                            aims to assist you with keeping an eye on your portfolio and the stock market. You can create your
+                            own portfolio for trading and a watchlist to keep track of the rest. With our alert system you can
+                            receive notifications when your securities reach a certain limit. <span class="lettertype1">wave</span>
+                            offers a user friendly design that is aimed to be helpful instead of confusing to the begining investor.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="bar2">
+            </div>
+        </div>
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"></script>
+    </body>
+</html>

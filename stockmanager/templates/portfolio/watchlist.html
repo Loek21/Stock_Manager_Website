@@ -1,0 +1,139 @@
+{% extends "portfolio/base.html" %}
+{% block title %}Portfolio{% endblock %}
+{% block nav %}
+<form action="{% url 'Search' %}" method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <input type="text" list="stocks" placeholder="Search" name="search" class="form-control" title="Search">
+        <datalist id="stocks">
+            {% for stock in stocks %}
+            <option value="{{stock.ticker}} {{stock.name}} {{stock.currency}}">
+            {% endfor %}
+        </datalist>
+    </div>
+</form>
+<div class="spacer"></div>
+<li class="nav-item active">
+    <a class="nav-link background" href="{% url 'portfolio' %}" title="Go to my portfolio">My portfolio</a>
+</li>
+<div class="spacer"></div>
+<li class="nav-item">
+    <a class="nav-link background" href="{% url 'Account' %}" title="Go to my account page">My account</a>
+</li>
+<div class="spacer"></div>
+<li class="nav-item">
+    <a class="nav-link background" href="{% url 'logout' %}" title="Logout">Logout</a>
+</li>
+{% endblock %}
+{% block body %}
+<div class="portfolio-grid">
+    <div class="header">
+        {% if portfolio == None %}
+        <button id="create_portfolio" class="gen-button" title="Create portfolio">Create Portfolio</button>
+        {% else %}
+        <a href="{% url 'portfolio' %}" title="Go to portfolio: {{portfolio.pname}}">{{portfolio.pname}}</a>
+        {% endif %}
+    </div>
+    <div class="watchlist">
+        <a href="{% url 'watchlist' %}" title="Go to watchlist">Watchlist</a>
+    </div>
+    <div class="graphic">
+        {% if portfolio %}
+        <div><h4>Portfolio: {{portfolio.pname}}</h4></div><br>
+        {% else %}
+        <div class="center"><h4>Please create a portfolio to view content</h4></div>
+        {% endif %}
+        {% if holdings %}
+        <table>
+            <tr>
+                <th>Product</th>
+                <th>Amount</th>
+                <th>Value</th>
+                <th>Up/Down (%)</th>
+                <th>Up/Down ($)</th>
+            </tr>
+        </table>
+        <div class="scroll-list2">
+            <table>
+                {% for holding in holdings %}
+                <tr>
+                    <td><a href="{% url 'holding' holding.hname %}" title="Go to {{holding.hnamef}}">{{holding.hnamef}}</a></td>
+                    <td>{{holding.hnumber}}</td>
+                    <td>${{holding.hvalue}}</td>
+                    <td>
+                        {% if holding.updownhp == 0 %}{{holding.updownhp}}%
+                        {% elif holding.updownhp > 0 %}<span class="positive">{{holding.updownhp}}%</span>
+                        {% else %}<span class="negative">{{holding.updownhp}}%</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if holding.updownhv == 0 %}${{holding.updownhv}}
+                        {% elif holding.updownhv > 0 %}<span class="positive">${{holding.updownhv}}</span>
+                        {% else %}<span class="negative">${{holding.updownhv}}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
+    </div>
+    <div class="vline"></div>
+    <div class="portfolio">
+        <div class="element">
+            <div><h4>Watchlist</h4></div><br>
+            {% if watchlist %}
+            <table>
+                <tr>
+                    <th>Product</th>
+                    <th>Value</th>
+                    <th>Up/Down (%)</th>
+                    <th>Up/Down ($)</th>
+                    <th> </th>
+                </tr>
+            </table>
+            <div class="scroll-list2">
+                <table>
+                    {% for holding in watchlist %}
+                    <tr>
+                        <td><a href="{% url 'holding' holding.whname %}" title="Go to {{holding.whnamef}}">{{holding.whnamef}}</a></td>
+                        <td>${{holding.whvalue}}</td>
+                        <td>
+                            {% if holding.wupdownhp == 0 %}{{holding.wupdownhp}}%
+                            {% elif holding.wupdownhp > 0 %}<span class="positive">{{holding.wupdownhp}}%</span>
+                            {% else %}<span class="negative">{{holding.wupdownhp}}%</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if holding.wupdownhv == 0 %}${{holding.wupdownhv}}
+                            {% elif holding.wupdownhv > 0 %}<span class="positive">${{holding.wupdownhv}}</span>
+                            {% else %}<span class="negative">${{holding.wupdownhv}}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form action="{% url 'RemoveWatch' holding.whname %}" method="post">{% csrf_token %}<button type=submit class="fa fa-trash" id="button-remove" title="Remove from watchlist"></button></form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% else %}
+                Nothing to watch
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="form" style="display:none" id="form-portfolio">
+    <div class="center"><h4>Create a portfolio</h4></div>
+    <form action="{% url 'AddPortfolio' %}" method="post">
+        {% csrf_token %}
+        <label>Enter portfolio name (no spaces):</label><br>
+        <input type="text" name="portfolio_name" placeholder="PortfolioName"><br>
+        <label>Enter starting balance:</label><br>
+        $<input type="number" step="0.01" name="cash"><br><br>
+        <div class="center"><button type="submit" class="gen-button" title="Create portfolio">Create Portfolio</button></div>
+    </form>
+</div>
+{% load static %}
+<script src="{% static '/portfolio/CreatePortfolio.js' %}"></script>
+{% endblock %}

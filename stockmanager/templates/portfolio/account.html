@@ -1,0 +1,110 @@
+{% extends "portfolio/base.html" %}
+{% block title %}Portfolio{% endblock %}
+{% block nav %}
+<form action="{% url 'Search' %}" method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <input type="text" list="stocks" placeholder="Search" name="search" class="form-control" title="Search">
+        <datalist id="stocks">
+            {% for stock in stocks %}
+            <option value="{{stock.ticker}} {{stock.name}} {{stock.currency}}">
+            {% endfor %}
+        </datalist>
+    </div>
+</form>
+<div class="spacer"></div>
+<li class="nav-item">
+    <a class="nav-link background" href="{% url 'portfolio' %}" title="Go to my portfolio">My portfolio</a>
+</li>
+<div class="spacer"></div>
+<li class="nav-item active">
+    <a class="nav-link background" href="{% url 'Account' %}" title="Go to my account page">My account</a>
+</li>
+<div class="spacer"></div>
+<li class="nav-item">
+    <a class="nav-link background" href="{% url 'logout' %}" title="Logout">Logout</a>
+</li>
+{% endblock %}
+{% block body %}
+<div class="portfolio-grid">
+    <div class="header">
+        {% if portfolio == None %}
+        <button id="create_portfolio" class="gen-button" title="Create portfolio">Create Portfolio</button>
+        {% else %}
+        <a href="{% url 'portfolio' %}" title="Go to portfolio: {{portfolio.pname}}">{{portfolio.pname}}</a>
+        {% endif %}
+    </div>
+    <div class="watchlist">
+        <a href="{% url 'watchlist' %}" title="Go to watchlist">Watchlist</a>
+    </div>
+    <div class="graphic">
+        <div><h4>Change account email address</h4></div>
+        <p>You will receive notifications from your alerts on this email address.</p>
+        <form action="{% url 'ChangeEmail' %}" method="post">
+            {% csrf_token %}
+            <label>Enter new email address:</label><br>
+            <input type=text name="new_email"><br><br>
+            <button type=submit class="gen-button" title="Submit">Submit</button>
+        </form><br>
+        <div><h4>Delete account</h4></div>
+        <form action="{% url 'DeleteAccount' %}" method="post">
+            {% csrf_token %}
+            <label><span class="red">Warning: once clicked it can't be undone</span></label><br>
+            <button type=submit class="gen-button" title="Delete account">Delete Account</button>
+        </form>
+    </div>
+    <div class="vline"></div>
+    <div class="portfolio">
+        <div class="element">
+            <div><h4>Alert list</h4></div><br>
+            {% if Alerts %}
+            <table>
+                <tr>
+                    <th>Product</th>
+                    <th>Lower limit</th>
+                    <th>Upper limit</th>
+                    <th> </th>
+                </tr>
+            </table>
+            <div class="scroll-list2">
+                <table>
+                    {% for alert in Alerts %}
+                    <tr>
+                        <td><a href="{% url 'holding' alert.holdingname %}" title="Go to {{alert.holdingname}}">{{alert.holdingname}}</a></td>
+                        <td>
+                            {% if alert.unit == "%" %}{{alert.valueDown}}%
+                            {% else %}${{alert.valueDown}}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if alert.unit == "%" %}{{alert.valueUp}}%
+                            {% else %}${{alert.valueUp}}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form action="{% url 'RemoveAlert' alert.holdingname %}" method="post">{% csrf_token %}<button type=submit class="fa fa-trash" id="button-remove" title="Remove from watchlist"></button></form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% else %}
+                You don't have any alerts set up
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="form" style="display:none" id="form-portfolio">
+    <div class="center"><h4>Create a portfolio</h4></div>
+    <form action="{% url 'AddPortfolio' %}" method="post">
+        {% csrf_token %}
+        <label>Enter portfolio name (no spaces):</label><br>
+        <input type="text" name="portfolio_name" placeholder="PortfolioName"><br>
+        <label>Enter starting balance:</label><br>
+        $<input type="number" step="0.01" name="cash"><br><br>
+        <div class="center"><button type="submit" class="gen-button" title="Create portfolio">Create Portfolio</button></div>
+    </form>
+</div>
+{% load static %}
+<script src="{% static '/portfolio/CreatePortfolio.js' %}"></script>
+{% endblock %}
